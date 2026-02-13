@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find the Letter! - Nursery Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f4f8;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            text-align: center;
+        }
+
+        #header {
+            background-color: #ffeb3b;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        #target-display {
+            font-size: 60px;
+            color: #d32f2f;
+            font-weight: bold;
+            display: block;
+        }
+
+        .instruction {
+            font-size: 20px;
+            color: #555;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: calc(100vh - 120px);
+            position: relative;
+        }
+
+        .balloon {
+            width: 110px;
+            height: 130px;
+            background-color: #2196f3;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -150px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 55px;
+            color: white;
+            font-weight: bold;
+            box-shadow: inset -8px -8px 0 rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .balloon:after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50px;
+            width: 10px;
+            height: 10px;
+            background: inherit;
+            transform: rotate(45deg);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <div class="instruction">Can you find the letter...</div>
+        <div id="target-display">A</div>
+    </div>
+    
+    <div id="game-container"></div>
+
+    <script>
+        const container = document.getElementById('game-container');
+        const targetDisplay = document.getElementById('target-display');
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        
+        let currentTarget = "";
+        const colors = ['#FF5252', '#448AFF', '#4CAF50', '#9C27B0', '#FF9100', '#00BCD4'];
+
+        function initLevel() {
+            // Clear existing balloons
+            container.innerHTML = "";
+            
+            // Set a new random target letter
+            currentTarget = alphabet[Math.floor(Math.random() * alphabet.length)];
+            targetDisplay.innerText = currentTarget;
+
+            // Generate 6 balloons: 1 correct, 5 wrong
+            let lettersForBalloons = [currentTarget];
+            while(lettersForBalloons.length < 6) {
+                let randomChar = alphabet[Math.floor(Math.random() * alphabet.length)];
+                if(!lettersForBalloons.includes(randomChar)) {
+                    lettersForBalloons.push(randomChar);
+                }
+            }
+
+            // Shuffle them so the correct one isn't always first
+            lettersForBalloons.sort(() => Math.random() - 0.5);
+
+            // Create the balloons
+            lettersForBalloons.forEach((char, index) => {
+                createBalloon(char, index);
+            });
+        }
+
+        function createBalloon(letter, index) {
+            const balloon = document.createElement('div');
+            balloon.className = 'balloon';
+            balloon.innerText = letter;
+            balloon.style.backgroundColor = colors[index % colors.length];
+            
+            // Spread them across the screen
+            const spacing = window.innerWidth / 7;
+            balloon.style.left = (spacing * (index + 0.5)) + 'px';
+            
+            // Random floating speed
+            let position = -150;
+            let speed = 0.5 + Math.random() * 1.5;
+
+            container.appendChild(balloon);
+
+            balloon.onclick = function() {
+                if (letter === currentTarget) {
+                    // Correct! Pop and move to next level
+                    balloon.style.transform = "scale(2)";
+                    balloon.style.opacity = "0";
+                    setTimeout(initLevel, 500);
+                } else {
+                    // Wrong letter! Shake effect
+                    balloon.style.transform = "translateX(10px)";
+                    setTimeout(() => balloon.style.transform = "translateX(-10px)", 50);
+                    setTimeout(() => balloon.style.transform = "translateX(0)", 100);
+                }
+            };
+
+            function animate() {
+                if (position > window.innerHeight) {
+                    position = -150; // Loop back to bottom if they miss it
+                }
+                position += speed;
+                balloon.style.bottom = position + 'px';
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // Start the first level
+        initLevel();
+    </script>
+</body>
+</html>
